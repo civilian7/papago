@@ -58,7 +58,8 @@ type
 implementation
 
 uses
-  System.JSON;
+  System.JSON,
+  System.NetEncoding;
 
 { TPapago }
 
@@ -77,10 +78,12 @@ var
   LSource: TStringStream;
   LTarget: TStringStream;
   LJSON: TJSONObject;
+  LText: string;
 begin
   Result := 'ERROR!!';
 
-  LSource := TStringStream.Create(Format('source=%s&target=%s&text=%s', [ASource, ATarget, AText]), TEncoding.UTF8);
+  LText := TNetEncoding.URL.Encode(AText);
+  LSource := TStringStream.Create(Format('source=%s&target=%s&text=%s', [ASource, ATarget, LText]), TEncoding.UTF8);
   LTarget := TStringStream.Create('', TEncoding.UTF8);
 
   try
@@ -90,6 +93,8 @@ begin
       LJSON := TJSONObject.ParseJSONValue(LTarget.DataString) as TJSONObject;
       Result := TJSONObject(LJSON.Get('message').JsonValue).Get('result').JsonValue.P['translatedText'].ToString;
       Result := Result.DeQuotedString('"');
+      Result := StringReplace(Result, '\r\n', #13#10, [rfReplaceAll]);
+      Result := StringReplace(Result, '\/', '/', [rfReplaceAll]);
       LJSON.Free;
     end;
   finally

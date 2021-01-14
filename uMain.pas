@@ -15,7 +15,8 @@ uses
   Vcl.StdCtrls,
   Vcl.ComCtrls,
   Vcl.Buttons,
-  PapagoAPI;
+  PapagoAPI,
+  uClipBrd;
 
 type
   TfrmMain = class(TForm)
@@ -25,17 +26,21 @@ type
     cbSource: TComboBox;
     cbTarget: TComboBox;
     sbSwitch: TSpeedButton;
-    cbCopyToClipboard: TCheckBox;
     lbSource: TLabel;
     lbTarget: TLabel;
+    cbMonitor: TCheckBox;
+    btnClear: TButton;
 
     procedure btnTranslateClick(Sender: TObject);
     procedure sbSwitchClick(Sender: TObject);
+    procedure btnClearClick(Sender: TObject);
   private
     FPapago: TPapago;
+    FMonitor: TClipBoardMonitor;
 
     procedure LoadConfig;
     procedure SaveConfig;
+    procedure TriggerMonitorChange(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -61,6 +66,10 @@ begin
   FPapago.FillItem(cbTarget.Items);
 
   LoadConfig;
+
+  FMonitor := TClipBoardMonitor.Create;
+  FMonitor.OnChange := TriggerMonitorChange;
+
 end;
 
 destructor TfrmMain.Destroy;
@@ -68,8 +77,15 @@ begin
   SaveConfig;
 
   FPapago.Free;
+  FMonitor.Free;
 
   inherited;
+end;
+
+procedure TfrmMain.btnClearClick(Sender: TObject);
+begin
+  eSource.Clear;
+  eTarget.Clear;
 end;
 
 procedure TfrmMain.btnTranslateClick(Sender: TObject);
@@ -77,18 +93,27 @@ var
   LSource: string;
   LTarget: string;
 begin
+  if (cbSource.ItemIndex = cbTarget.ItemIndex) then
+  begin
+    Application.MessageBox('원본과 번역할 언어가 동일합니다', '확인', MB_ICONERROR + MB_OK);
+    Exit;
+  end
+  else
   if (FPapago.ClientID = '') or (FPapago.ClientSecret = '') then
   begin
     Application.MessageBox('ClientID 또는 Client Secret Key가 없습니다', '확인', MB_ICONERROR + MB_OK);
+    Exit;
+  end
+  else
+  if (eSource.Text = '') then
+  begin
+    Application.MessageBox('번역할 텍스트를 입력하십시오', '확인', MB_ICONERROR + MB_OK);
     Exit;
   end;
 
   LSource := FPapago.GetCode(cbSource.ItemIndex);
   LTarget := FPapago.GetCode(cbTarget.ItemIndex);
   eTarget.Text := FPapago.Execute(LSource, LTarget, eSource.Text);
-
-  if cbCopyToClipboard.Checked then
-    Clipboard.AsText := eTarget.Text;
 end;
 
 procedure TfrmMain.LoadConfig;
@@ -102,7 +127,7 @@ begin
     // 번역 옵션
     cbSource.ItemIndex := ReadInteger('OPTION', 'SOURCE', 0);
     cbTarget.ItemIndex := ReadInteger('OPTION', 'TARGET', 1);
-    cbCopyToClipboard.Checked := ReadBool('OPTION', 'AUTOCOPY', True);
+    cbMonitor.Checked := ReadBool('OPTION', 'AUTOCOPY', True);
 
     // 화면 위치
     Left := ReadInteger('POSITION', 'LEFT', 0);
@@ -119,7 +144,7 @@ begin
     // 번역 옵션
     WriteInteger('OPTION', 'SOURCE', cbSource.ItemIndex);
     WriteInteger('OPTION', 'TARGET', cbTarget.ItemIndex);
-    WriteBool('OPTION', 'AUTOCOPY', cbCopyToClipboard.Checked);
+    WriteBool('OPTION', 'AUTOCOPY', cbMonitor.Checked);
 
     // 화면 위치
     WriteInteger('POSITION', 'LEFT', Left);
@@ -136,6 +161,17 @@ begin
   LIndex := cbSource.ItemIndex;
   cbSource.ItemIndex := cbTarget.ItemIndex;
   cbTarget.ItemIndex := LIndex;
+end;
+
+procedure TfrmMain.TriggerMonitorChange(Sender: TObject);
+begin
+  if cbMonitor.Checked then
+  begin
+    eSource.Text := ClipBoard.AsText;
+    ClipBoard.Clear;
+
+    btnTranslateClick(nil);
+  end;
 end;
 
 end.
