@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+  <Transactions>
+    <Transaction>2021-01-14 15:32:24.015,=C:\Users\civil\OneDrive\문서\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2021-01-14 17:58:21.872,D:\Works\Projects\Papago\uMain.dfm=C:\Users\civil\OneDrive\문서\Embarcadero\Studio\Projects\Unit1.dfm</Transaction>
+    <Transaction>2021-01-14 17:58:21.872,D:\Works\Projects\Papago\uMain.pas=C:\Users\civil\OneDrive\문서\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2021-01-14 17:58:28.268,D:\Works\Projects\Papago\Papago.dproj=C:\Users\civil\OneDrive\문서\Embarcadero\Studio\Projects\Project1.dproj</Transaction>
+  </Transactions>
+</BorlandProject>
